@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest         # official image :contentReference[oaicite:0]{index=0}
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:///mlflow.db
+      --default-artifact-root /mlartifacts
+      --host 0.0.0.0
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlruns            # persist run meta-data :contentReference[oaicite:1]{index=1}
+      - ./mlartifacts:/mlartifacts  # persist models & artifacts
+
+  trainer1:
+    build: ./trainer1
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - mlflow
+    ports:
+      - "8000:8000"
+
+  trainer2:
+    build: ./trainer2
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - mlflow
+    ports:
+      - "8001:8001"
